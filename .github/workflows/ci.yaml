@@ -27,4 +27,4 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn -B clean test
+        run: vn -B clean test -Dmaven.compiler.release=17
