@@ -12,7 +12,7 @@ public class Config extends AbstractMongoClientConfiguration {
 
     @Override
     protected String getDatabaseName() {
-        return "users";
+        return "user-service";
     }
 
 }

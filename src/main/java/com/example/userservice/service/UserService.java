@@ -1,23 +1,38 @@
 package com.example.userservice.service;
 
-import com.example.userservice.dto.User;
+import com.example.userservice.model.User;
 import com.example.userservice.repository.UserRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
+   @Autowired
+    private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository, PasswordEncoder encoder){
+        this.userRepository = userRepository;
+        this.encoder = encoder;
+    }
 
     public User createUser(User user) {
         return userRepository.save(user);
     }
 
-    public User updateUser(Long userId, User updatedUser) {
-        User existingUser = userRepository.findById(userId).orElse(null);
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User updateUser(String userId, User updatedUser) {
+        ObjectId objectId = new ObjectId(userId);
+        User existingUser = userRepository.findById(objectId).orElse(null);
         if (existingUser != null) {
             existingUser.setUsername(updatedUser.getUsername());
             existingUser.setEmail(updatedUser.getEmail());
@@ -27,20 +42,26 @@ public class UserService {
         return null; // User not found
     }
 
-    public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+    public void deleteUser(String userId) {
+        ObjectId objectId = new ObjectId(userId);
+        userRepository.deleteById(objectId);
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId).orElse(null);
+    public User getUserById(String userId) {
+        try {
+            ObjectId objectId = new ObjectId(userId);
+            return userRepository.findById(objectId).orElse(null);
+        } catch (IllegalArgumentException e) {
+            return null; // Invalid ObjectId format
+        }
+        //return userRepository.findById(userId).orElse(null);
     }
 
     public User loginUser(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (((Optional<?>) userOptional).isPresent()) {
             User user = userOptional.get();
-            // Validate password
-            if (user.getPassword().equals(password)) {
+            if (encoder.matches(password, user.getPassword())) {
                 return user;
             }
         }
