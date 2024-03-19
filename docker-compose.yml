@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  user-service:
+    image: ivanicov/ita-user-service:1.0.2
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo_db
+    environment:
+      SPRING_DATA_MONGODB_URI: ${MONGO_DB_URI}
+      SPRING_DATA_MONGODB_DATABASE: ${MONGO_DB_DATABASE}
+
+  mongo_db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

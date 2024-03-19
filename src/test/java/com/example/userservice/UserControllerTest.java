@@ -7,24 +7,23 @@ import com.example.userservice.payload.request.SignupRequest;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.service.UserService;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc
@@ -56,31 +55,57 @@ public class UserControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
-//    @Test
-//    public void testLoginUser() {
-//        // Create test data
-//        String username = "testUser";
-//        String password = "password";
-//        LoginRequest loginRequest = new LoginRequest(username, password);
-//        String encodedPassword = encoder.encode(password);
-//        User user = new User(username, "test@example.com", encodedPassword);
-//
-//        // Stubbing repository method
-//        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-//
-//        // Test controller method
-//        ResponseEntity<User> response = userController.loginUser(loginRequest);
-//
-//        // Assertions
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//
-//        // Verify that the returned user matches the test user
-//        User returnedUser = response.getBody();
-//        assertNotNull(returnedUser);
-//        assertEquals(username, returnedUser.getUsername());
-//        // You might want to verify other user attributes as well
-//
-//        // Verify that the password matches
-//        assertTrue(encoder.matches(password, returnedUser.getPassword()));
-//    }
+    @Test
+    public void testLoginUser() {
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        User user = new User("username", "email@example.com", "encodedPassword");
+        when(userService.loginUser(anyString(), anyString())).thenReturn(user);
+        when(encoder.matches(anyString(), anyString())).thenReturn(true);
+
+        ResponseEntity<User> responseEntity = userController.loginUser(loginRequest);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testGetUserById() {
+        ObjectId userId = new ObjectId();
+        User user = new User("username", "email@example.com", "encodedPassword");
+        when(userService.getUserById(userId.toHexString())).thenReturn(user);
+
+        ResponseEntity<User> responseEntity = userController.getUserById(userId.toHexString());
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateUser() {
+        User updatedUser = new User("updatedUsername", "updatedEmail@example.com", "encodedPassword");
+        ObjectId userId = new ObjectId();
+        when(userService.updateUser(anyString(), any(User.class))).thenReturn(updatedUser);
+
+        ResponseEntity<User> responseEntity = userController.updateUser(userId.toHexString(), updatedUser);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testGetAllUsers() {
+        List<User> userList = Collections.singletonList(new User("username", "email@example.com", "encodedPassword"));
+        when(userService.getAllUsers()).thenReturn(userList);
+
+        ResponseEntity<List<User>> responseEntity = userController.getAllUsers();
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(userList, responseEntity.getBody());
+    }
+
+    @Test
+    public void testDeleteUser() {
+        ObjectId userId = new ObjectId();
+
+        ResponseEntity<Void> responseEntity = userController.deleteUser(userId.toHexString());
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
 }

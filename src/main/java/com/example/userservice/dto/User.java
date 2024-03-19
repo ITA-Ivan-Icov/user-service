@@ -13,4 +13,10 @@ public class User {
     private String username;
     private String password;
     private String email;
+
+    public User(String username, String mail, String password) {
+        this.username = username;
+        this.email = mail;
+        this.password = password;
+    }
 }

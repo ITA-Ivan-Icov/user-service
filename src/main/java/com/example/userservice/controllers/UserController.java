@@ -7,7 +7,8 @@ import com.example.userservice.payload.response.MessageResponse;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,8 @@ public class UserController {
 
 //    @Autowired
     private final PasswordEncoder encoder;
+
+    Logger logger = LogManager.getLogger(UserController.class);
 
     public UserController(UserService userService, UserRepository userRepository, PasswordEncoder encoder) {
         this.userService = userService;
@@ -62,6 +65,7 @@ public class UserController {
     public ResponseEntity<User> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         User user = userService.loginUser(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
+            logger.info("User logged in successfully");
             return ResponseEntity.ok(user);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -71,6 +75,7 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User updatedUser) {
         User updated = userService.updateUser(userId, updatedUser);
         if (updated != null) {
+            logger.info("User updated in successfully");
             return ResponseEntity.ok(updated);
         }
         return ResponseEntity.notFound().build();
